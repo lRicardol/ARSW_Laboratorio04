@@ -10,6 +10,8 @@ import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.impl.InMemoryBlueprintPersistence;
+
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.Test;
@@ -69,6 +71,23 @@ public class InMemoryPersistenceTest {
         
     }
 
+    @Test
+    public void getBlueprintsByAuthorTest() throws Exception {
+        InMemoryBlueprintPersistence ibpp = new InMemoryBlueprintPersistence();
 
+        Point[] pts1 = new Point[]{new Point(10, 10), new Point(20, 20)};
+        Blueprint bp1 = new Blueprint("Sofia", "plano1", pts1);
+        ibpp.saveBlueprint(bp1);
+
+        Point[] pts2 = new Point[]{new Point(30, 30), new Point(40, 40)};
+        Blueprint bp2 = new Blueprint("Sofia", "plano2", pts2);
+        ibpp.saveBlueprint(bp2);
+
+        Set<Blueprint> result = ibpp.getBlueprintsByAuthor("Sofia");
+
+        assertTrue(result.contains(bp1));
+        assertTrue(result.contains(bp2));
+        assertEquals(2, result.size());
+    }
     
 }
