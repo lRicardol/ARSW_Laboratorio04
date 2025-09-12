@@ -43,4 +43,68 @@ En este ejercicio se va a construír un modelo de clases para la capa lógica de
 	* (A) Filtrado de redundancias: suprime del plano los puntos consecutivos que sean repetidos.
 	* (B) Filtrado de submuestreo: suprime 1 de cada 2 puntos del plano, de manera intercalada.
 
+
+(A)
+
+Creamos la interfaz BluePrintsFilter y la clase RedundancyFilter que implementará dicha interfaz. Si queremos que se inyecte RedundancyFilter, le agregamos la anotación @Primary a esta clase para que Spring la inyecte.
+
+Interfaz
+```java
+public interface BluePrintsFilter {
+	Blueprint apply(Blueprint bp);
+}
+```
+
+Clase concreta
+```java
+public class RedundancyFilter implements BluePrintsFilter{
+	@Override
+	public Blueprint apply(Blueprint bp) {
+		List<Point> original = bp.getPoints();
+		List<Point> filtered = new ArrayList<>();
+
+		Point prev = null;
+		for (Point p : original) {
+			if (prev == null || !p.equals(prev)) {
+				filtered.add(p);
+			}
+			prev = p;
+		}
+
+		return new Blueprint(bp.getAuthor(), bp.getName(), filtered.toArray(new Point[0]));
+	}
+}
+```
+
+(B)
+
+Clase concreta SubsamplingFilter
+```java
+public class SubsamplingFilter implements BluePrintsFilter{
+	@Override
+	public Blueprint apply(Blueprint bp){
+		List<Point> original = bp.getPoints();
+		List<Point> filtered = new ArrayList<>();
+
+		for (int i = 0; i < original.size(); i++) {
+			if (i % 2 == 0) { // dejamos 1 de cada 2
+				filtered.add(original.get(i));
+			}
+		}
+
+		return new Blueprint(bp.getAuthor(), bp.getName(), filtered.toArray(new Point[0]));
+	}
+}
+```
+
+Ahora, integramos el filtro en BlueprintsServices
+```java
+@Autowired
+BluePrintsFilter bpf;
+```
+
+Además, modificamos los métodos para que apliquen el filtro seleccionado
+
 5. Agrege las pruebas correspondientes a cada uno de estos filtros, y pruebe su funcionamiento en el programa de prueba, comprobando que sólo cambiando la posición de las anotaciones -sin cambiar nada más-, el programa retorne los planos filtrados de la manera (A) o de la manera (B). 
+
+Se crearon las clases de pruebas unitarias RedundancyFilterTest y SubsamplingFilterTest. La anotación @Primary es la única que se cambia para utilizar uno u otro filtro. 
