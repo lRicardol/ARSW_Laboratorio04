@@ -27,10 +27,84 @@ En este ejercicio se va a construír un modelo de clases para la capa lógica de
 
 2. Complete los operaciones getBluePrint() y getBlueprintsByAuthor(). Implemente todo lo requerido de las capas inferiores (por ahora, el esquema de persistencia disponible 'InMemoryBlueprintPersistence') agregando las pruebas correspondientes en 'InMemoryPersistenceTest'.
 
+![Captura de pantalla 2025-09-06 200055.png](img/Captura%20de%20pantalla%202025-09-06%20200055.png)
+
+![Captura de pantalla 2025-09-06 200002.png](img/Captura%20de%20pantalla%202025-09-06%20200002.png)
+
+![Captura de pantalla 2025-09-06 195921.png](img/Captura%20de%20pantalla%202025-09-06%20195921.png)
+
 3. Haga un programa en el que cree (mediante Spring) una instancia de BlueprintServices, y rectifique la funcionalidad del mismo: registrar planos, consultar planos, registrar planos específicos, etc.
+
+![Captura de pantalla 2025-09-06 203607.png](img/Captura%20de%20pantalla%202025-09-06%20203607.png)
+
+![Captura de pantalla 2025-09-06 203555.png](img/Captura%20de%20pantalla%202025-09-06%20203555.png)
 
 4. Se quiere que las operaciones de consulta de planos realicen un proceso de filtrado, antes de retornar los planos consultados. Dichos filtros lo que buscan es reducir el tamaño de los planos, removiendo datos redundantes o simplemente submuestrando, antes de retornarlos. Ajuste la aplicación (agregando las abstracciones e implementaciones que considere) para que a la clase BlueprintServices se le inyecte uno de dos posibles 'filtros' (o eventuales futuros filtros). No se contempla el uso de más de uno a la vez:
 	* (A) Filtrado de redundancias: suprime del plano los puntos consecutivos que sean repetidos.
 	* (B) Filtrado de submuestreo: suprime 1 de cada 2 puntos del plano, de manera intercalada.
 
+
+(A)
+
+Creamos la interfaz BluePrintsFilter y la clase RedundancyFilter que implementará dicha interfaz. Si queremos que se inyecte RedundancyFilter, le agregamos la anotación @Primary a esta clase para que Spring la inyecte.
+
+Interfaz
+```java
+public interface BluePrintsFilter {
+	Blueprint apply(Blueprint bp);
+}
+```
+
+Clase concreta
+```java
+public class RedundancyFilter implements BluePrintsFilter{
+	@Override
+	public Blueprint apply(Blueprint bp) {
+		List<Point> original = bp.getPoints();
+		List<Point> filtered = new ArrayList<>();
+
+		Point prev = null;
+		for (Point p : original) {
+			if (prev == null || !p.equals(prev)) {
+				filtered.add(p);
+			}
+			prev = p;
+		}
+
+		return new Blueprint(bp.getAuthor(), bp.getName(), filtered.toArray(new Point[0]));
+	}
+}
+```
+
+(B)
+
+Clase concreta SubsamplingFilter
+```java
+public class SubsamplingFilter implements BluePrintsFilter{
+	@Override
+	public Blueprint apply(Blueprint bp){
+		List<Point> original = bp.getPoints();
+		List<Point> filtered = new ArrayList<>();
+
+		for (int i = 0; i < original.size(); i++) {
+			if (i % 2 == 0) { // dejamos 1 de cada 2
+				filtered.add(original.get(i));
+			}
+		}
+
+		return new Blueprint(bp.getAuthor(), bp.getName(), filtered.toArray(new Point[0]));
+	}
+}
+```
+
+Ahora, integramos el filtro en BlueprintsServices
+```java
+@Autowired
+BluePrintsFilter bpf;
+```
+
+Además, modificamos los métodos para que apliquen el filtro seleccionado
+
 5. Agrege las pruebas correspondientes a cada uno de estos filtros, y pruebe su funcionamiento en el programa de prueba, comprobando que sólo cambiando la posición de las anotaciones -sin cambiar nada más-, el programa retorne los planos filtrados de la manera (A) o de la manera (B). 
+
+Se crearon las clases de pruebas unitarias RedundancyFilterTest y SubsamplingFilterTest. La anotación @Primary es la única que se cambia para utilizar uno u otro filtro. 

@@ -47,8 +47,14 @@ public class Blueprint {
 
     @Override
     public String toString() {
-        return "Blueprint{" + "author=" + author + ", name=" + name + '}';
+        return "Blueprint{" +
+                "author=" + author +
+                ", name=" + name +
+                ", points=" + points +
+                '}';
     }
+
+
 
     @Override
     public int hashCode() {

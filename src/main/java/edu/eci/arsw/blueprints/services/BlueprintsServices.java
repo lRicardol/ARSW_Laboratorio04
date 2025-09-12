@@ -7,8 +7,11 @@ package edu.eci.arsw.blueprints.services;
 
 import edu.eci.arsw.blueprints.model.Blueprint;
 import edu.eci.arsw.blueprints.model.Point;
+import edu.eci.arsw.blueprints.persistence.BluePrintsFilter;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
+
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,13 +27,19 @@ public class BlueprintsServices {
    
     @Autowired
     BlueprintsPersistence bpp=null;
-    
-    public void addNewBlueprint(Blueprint bp){
-        
+
+    @Autowired
+    BluePrintsFilter bpf;
+
+    public void addNewBlueprint(Blueprint bp) throws Exception {
+        bpp.saveBlueprint(bp);
     }
-    
+
     public Set<Blueprint> getAllBlueprints(){
-        return null;
+        Set<Blueprint> blueprints = bpp.getAllBlueprints();
+        return blueprints.stream()
+                .map(bpf::apply)
+                .collect(java.util.stream.Collectors.toSet());
     }
     
     /**
@@ -41,9 +50,10 @@ public class BlueprintsServices {
      * @throws BlueprintNotFoundException if there is no such blueprint
      */
     public Blueprint getBlueprint(String author,String name) throws BlueprintNotFoundException{
-        throw new UnsupportedOperationException("Not supported yet."); 
+        Blueprint bp = bpp.getBlueprint(author, name);
+        return bpf.apply(bp);
     }
-    
+
     /**
      * 
      * @param author blueprint's author
@@ -51,7 +61,12 @@ public class BlueprintsServices {
      * @throws BlueprintNotFoundException if the given author doesn't exist
      */
     public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException{
-        throw new UnsupportedOperationException("Not supported yet."); 
+        Set<Blueprint> bps = bpp.getBlueprintsByAuthor(author);
+        Set<Blueprint> filtered = new HashSet<>();
+        for (Blueprint bp : bps) {
+            filtered.add(bpf.apply(bp));
+        }
+        return filtered;
     }
     
 }
