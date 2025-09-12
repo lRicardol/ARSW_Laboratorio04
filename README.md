@@ -2,6 +2,10 @@
 
 ## Arquitecturas de Software
 
+## Integrantes
+- Ricardo Andrés Ayala Garzón [lRicardol](https://github.com/lRicardol)
+- Santiago Amaya Zapata [SantiagoAmaya21](https://github.com/SantiagoAmaya21)
+
 # Componentes y conectores - Parte I.
 
 El ejercicio se debe traer terminado para el siguiente laboratorio (Parte II).
